@@ -4,13 +4,49 @@
   <meta charset="UTF-8" />
   <title>Screenshot Tool</title>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f9f9f9;
+      text-align: center;
+    }
+    textarea {
+      width: 80%;
+      height: 100px;
+      padding: 10px;
+      margin-bottom: 20px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
-  <textarea id="notes" placeholder="یادداشت بنویسید..."></textarea>
-  <button onclick="captureAndSend()">📸 گرفتن اسکرین‌شات و ارسال</button>
+  <h2>📝 ابزار ثبت اسکرین‌شات با یادداشت</h2>
+  <textarea id="notes" placeholder="یادداشت بنویسید..."></textarea><br>
+  <button id="captureBtn" onclick="captureAndSend()">📸 گرفتن اسکرین‌شات و ارسال</button>
 
   <script>
     function captureAndSend() {
+      const btn = document.getElementById("captureBtn");
+      btn.disabled = true;
+      btn.innerText = "⏳ در حال ارسال...";
+
       html2canvas(document.body).then(canvas => {
         canvas.toBlob(blob => {
           const formData = new FormData();
@@ -22,10 +58,17 @@
             body: formData
           })
           .then(res => res.text())
-          .then(alert)
+          .then(msg => {
+            alert("✅ ارسال شد: " + msg);
+            document.getElementById("notes").value = "";
+          })
           .catch(err => {
             console.error(err);
             alert("❌ خطا در ارسال به سرور");
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.innerText = "📸 گرفتن اسکرین‌شات و ارسال";
           });
         });
       });
