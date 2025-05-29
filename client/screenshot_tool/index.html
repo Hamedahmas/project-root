@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Screenshot Tool</title>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <textarea id="notes" placeholder="یادداشت بنویسید..."></textarea>
+  <button onclick="captureAndSend()">📸 گرفتن اسکرین‌شات و ارسال</button>
+
+  <script>
+    function captureAndSend() {
+      html2canvas(document.body).then(canvas => {
+        canvas.toBlob(blob => {
+          const formData = new FormData();
+          formData.append("image", blob, `screenshot_${Date.now()}.png`);
+          formData.append("notes", document.getElementById("notes").value || "screenshot");
+
+          fetch("http://localhost:3000/upload", {
+            method: "POST",
+            body: formData
+          })
+          .then(res => res.text())
+          .then(alert)
+          .catch(err => {
+            console.error(err);
+            alert("❌ خطا در ارسال به سرور");
+          });
+        });
+      });
+    }
+  </script>
+</body>
+</html>
