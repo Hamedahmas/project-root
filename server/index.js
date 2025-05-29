@@ -7,13 +7,15 @@ require("dotenv").config();
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(express.static(path.join(__dirname, "../client"))); // سِرو فایل‌های HTML
+app.use(express.static(path.join(__dirname, "../client"))); // سرو فایل‌های HTML
 
 app.post("/upload", upload.single("image"), async (req, res) => {
   try {
+    if (!req.file) return res.status(400).send("❌ فایلی ارسال نشده است.");
+
     const { buffer, originalname } = req.file;
     const notes = req.body.notes || "screenshot";
-    const base64Image = buffer.toString("base64");
+    const base64Image = Buffer.from(buffer).toString("base64");
     const today = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `screenshot-${today}.png`;
 
@@ -21,11 +23,16 @@ app.post("/upload", upload.single("image"), async (req, res) => {
     const owner = "Hamedahmas";
     const token = process.env.GITHUB_TOKEN;
 
+    if (!token) {
+      return res.status(500).send("❌ GitHub Token در فایل .env تنظیم نشده است.");
+    }
+
     const githubResponse = await axios.put(
       `https://api.github.com/repos/${owner}/${repo}/contents/screenshots/${filename}`,
       {
-        message: notes,
-        content: base64Image
+        message: `📝 ${notes}`,
+        content: base64Image,
+        branch: "main" // در صورت نیاز، به شاخه‌ی دلخواه تغییر بده
       },
       {
         headers: {
@@ -35,13 +42,13 @@ app.post("/upload", upload.single("image"), async (req, res) => {
       }
     );
 
-    res.send("✅ اسکرین‌شات با موفقیت به GitHub ارسال شد!");
+    res.send("✅ اسکرین‌شات با موفقیت در GitHub ذخیره شد.");
   } catch (error) {
-    console.error(error.response?.data || error.message);
-    res.status(500).send("❌ خطا در آپلود به GitHub");
+    console.error("❌ GitHub API error:", error.response?.data || error.message);
+    res.status(500).send("❌ خطا در آپلود اسکرین‌شات به GitHub.");
   }
 });
 
 app.listen(3000, () => {
-  console.log("🚀 Server running on http://localhost:3000");
+  console.log("🚀 Server is running on http://localhost:3000");
 });
