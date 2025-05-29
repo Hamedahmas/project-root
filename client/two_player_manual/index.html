@@ -1,19 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa">
 <head>
   <meta charset="UTF-8" />
   <title>Manual</title>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background-color: #f0f0f0;
+      direction: rtl;
+      text-align: right;
+    }
+    h1 {
+      color: #333;
+    }
+    textarea {
+      width: 80%;
+      height: 100px;
+      padding: 10px;
+      margin: 20px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
   <h1>آموزش بازی</h1>
   <p>محتوای آموزش اینجاست...</p>
   
-  <textarea id="notes" placeholder="یادداشت..."></textarea>
-  <button onclick="captureAndSend()">📸 گرفتن اسکرین‌شات</button>
+  <textarea id="notes" placeholder="یادداشت..."></textarea><br>
+  <button id="captureBtn" onclick="captureAndSend()">📸 گرفتن اسکرین‌شات</button>
 
   <script>
     function captureAndSend() {
+      const btn = document.getElementById("captureBtn");
+      btn.disabled = true;
+      btn.innerText = "⏳ در حال گرفتن اسکرین‌شات...";
+
       html2canvas(document.body).then(canvas => {
         canvas.toBlob(blob => {
           const formData = new FormData();
@@ -25,10 +64,17 @@
             body: formData
           })
           .then(res => res.text())
-          .then(alert)
+          .then(msg => {
+            alert("✅ ارسال شد: " + msg);
+            document.getElementById("notes").value = "";
+          })
           .catch(err => {
             console.error(err);
             alert("❌ خطا در ارسال به سرور");
+          })
+          .finally(() => {
+            btn.disabled = false;
+            btn.innerText = "📸 گرفتن اسکرین‌شات";
           });
         });
       });
